@@ -17,12 +17,19 @@
 - [x] Voeg afzonderlijke tenantgebonden instellingen toe voor Customer AI en Platform AI met gevalideerde OpenAI-, Anthropic- en Google-keuzes zonder browsersecrets.
 - [x] Bouw een responsieve, toegankelijke beheeromgeving met navigatie voor Chat, Changes, Approvals, History, Health en Rollback.
 - [x] Schrijf en voer Vitest-tests uit voor organisatieautorisatie, Safe Changes, approvals, auditlogs, rollback en providergrenzen.
-- [ ] Controleer de kernschermen visueel op desktop en mobiel en verifieer fout-, laad- en lege staten.
+- [x] Controleer de kernschermen visueel op desktop en mobiel en verifieer fout-, laad- en lege staten.
 - [x] Herstel het wisselen naar elke organisatie waarvoor de gebruiker membership heeft, zonder blokkade van de vorige actieve context.
 - [x] Voeg proceduretests toe voor cross-tenant configuratie-uitlezing, approvals, audit-eventregistratie, rollback en providerwijzigingen.
-- [ ] Verifieer na echte organisatie-onboarding de tenantwerkruimte op desktop en mobiel, inclusief laad-, fout- en lege staten.
+- [x] Verifieer na echte organisatie-onboarding de tenantwerkruimte op desktop en mobiel, inclusief laad-, fout- en lege staten.
+- [x] Voeg een zichtbare, herstelbare fouttoestand toe wanneer tenantqueries niet beschikbaar zijn.
+- [x] Herstel de React-rendercrash die optreedt na het indienen van een structureel providerverzoek.
+- [x] Verifieer expliciet de laadstatus van tenantoverzicht, wijzigingen, historie en providerinstellingen in de browser.
+- [x] Controleer na onboarding de resterende kernroutes ook op mobiel en leg de representatieve dekking vast.
 - [x] Voeg auditregistratietests toe voor Safe Change-creatie, approval of rejection, uitvoering en rollback.
 - [x] Test de auditdetails voor actor, organizationId, action, outcome en changeRequestId op de belangrijkste governancepaden.
 - [x] Voeg flow-niveau tests toe die auditcalls bewijzen voor create, approve of reject, execute, failed en rollback.
 - [x] Voeg een directe approved Structural Change-flowtest toe met execution-start- en verification-auditdetails.
 - [x] Werk de voortgangsstatus en delivery roadmap bij, voer kwaliteitscontroles uit en maak een projectcheckpoint.
+- [x] Maak een definitief post-acceptatiecheckpoint met de vertaalbeveiliging en laad-/foutstatusverificatie.
+- [x] Verifieer Chat, Approvals, History, Health, Rollback en Providers na onboarding op mobiel.
+- [x] Verifieer mobiele laad-, fout- en leegstatussen zonder tenantdata te wijzigen.
