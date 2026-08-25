@@ -1,5 +1,27 @@
 {
   "version": "7",
   "dialect": "mysql",
-  "entries": []
+  "entries": [
+    {
+      "idx": 0,
+      "version": "5",
+      "when": 1787689309246,
+      "tag": "0000_tricky_trish_tilby",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "5",
+      "when": 1787689496875,
+      "tag": "0001_harsh_sinister_six",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1787689769411,
+      "tag": "0002_unknown_wallop",
+      "breakpoints": true
+    }
+  ]
 }

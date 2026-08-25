@@ -1,17 +1,18 @@
-import { int, mysqlEnum, mysqlTable, text, timestamp, varchar } from "drizzle-orm/mysql-core";
+import {
+  boolean,
+  index,
+  int,
+  json,
+  mysqlEnum,
+  mysqlTable,
+  text,
+  timestamp,
+  uniqueIndex,
+  varchar,
+} from "drizzle-orm/mysql-core";
 
-/**
- * Core user table backing auth flow.
- * Extend this file with additional tables as your product grows.
- * Columns use camelCase to match both database fields and generated types.
- */
 export const users = mysqlTable("users", {
-  /**
-   * Surrogate primary key. Auto-incremented numeric value managed by the database.
-   * Use this for relations between tables.
-   */
   id: int("id").autoincrement().primaryKey(),
-  /** Manus OAuth identifier (openId) returned from the OAuth callback. Unique per user. */
   openId: varchar("openId", { length: 64 }).notNull().unique(),
   name: text("name"),
   email: varchar("email", { length: 320 }),
@@ -22,7 +23,174 @@ export const users = mysqlTable("users", {
   lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),
 });
 
+export const organizations = mysqlTable(
+  "organizations",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    name: varchar("name", { length: 160 }).notNull(),
+    slug: varchar("slug", { length: 160 }).notNull(),
+    createdBy: int("createdBy").notNull().references(() => users.id),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  (table) => [uniqueIndex("organizations_slug_unique").on(table.slug)],
+);
+
+export const organizationMemberships = mysqlTable(
+  "organization_memberships",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    organizationId: int("organizationId").notNull().references(() => organizations.id),
+    userId: int("userId").notNull().references(() => users.id),
+    role: mysqlEnum("role", ["owner", "admin", "operator", "viewer"]).notNull(),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex("membership_organization_user_unique").on(table.organizationId, table.userId),
+    index("membership_user_idx").on(table.userId),
+  ],
+);
+
+export const userOrganizationContexts = mysqlTable(
+  "user_organization_contexts",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    userId: int("userId").notNull().references(() => users.id),
+    organizationId: int("organizationId").notNull().references(() => organizations.id),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex("user_organization_context_user_unique").on(table.userId),
+    index("user_organization_context_organization_idx").on(table.organizationId),
+  ],
+);
+
+export const aiConfigurations = mysqlTable(
+  "ai_configurations",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    organizationId: int("organizationId").notNull().references(() => organizations.id),
+    scope: mysqlEnum("scope", ["customer", "platform"]).notNull(),
+    provider: mysqlEnum("provider", ["openai", "anthropic", "google"]).notNull().default("openai"),
+    model: varchar("model", { length: 160 }).notNull().default("gpt-5-mini"),
+    systemPrompt: text("systemPrompt").notNull(),
+    guardrails: json("guardrails").$type<string[]>().notNull(),
+    updatedBy: int("updatedBy").notNull().references(() => users.id),
+    version: int("version").notNull().default(1),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  (table) => [uniqueIndex("configuration_organization_scope_unique").on(table.organizationId, table.scope)],
+);
+
+export const providerSettings = mysqlTable(
+  "provider_settings",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    organizationId: int("organizationId").notNull().references(() => organizations.id),
+    scope: mysqlEnum("scope", ["customer", "platform"]).notNull(),
+    provider: mysqlEnum("provider", ["openai", "anthropic", "google"]).notNull(),
+    model: varchar("model", { length: 160 }).notNull(),
+    enabled: boolean("enabled").notNull().default(false),
+    updatedBy: int("updatedBy").notNull().references(() => users.id),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  (table) => [uniqueIndex("provider_setting_organization_scope_unique").on(table.organizationId, table.scope)],
+);
+
+export const changeRequests = mysqlTable(
+  "change_requests",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    organizationId: int("organizationId").notNull().references(() => organizations.id),
+    requestedBy: int("requestedBy").notNull().references(() => users.id),
+    source: mysqlEnum("source", ["manual", "agent"]).notNull().default("manual"),
+    changeType: mysqlEnum("changeType", ["safe", "structural"]).notNull(),
+    targetScope: mysqlEnum("targetScope", ["customer", "platform", "provider"]).notNull(),
+    status: mysqlEnum("status", [
+      "requested",
+      "validated",
+      "pending_approval",
+      "approved",
+      "rejected",
+      "executing",
+      "verified",
+      "failed",
+      "rolled_back",
+    ]).notNull().default("requested"),
+    title: varchar("title", { length: 200 }).notNull(),
+    rationale: text("rationale").notNull(),
+    proposedValue: json("proposedValue").$type<Record<string, unknown>>().notNull(),
+    validationResult: json("validationResult").$type<Record<string, unknown>>().notNull(),
+    requiresApproval: boolean("requiresApproval").notNull().default(false),
+    executedAt: timestamp("executedAt"),
+    verifiedAt: timestamp("verifiedAt"),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  (table) => [
+    index("change_organization_status_idx").on(table.organizationId, table.status),
+    index("change_requester_idx").on(table.requestedBy),
+  ],
+);
+
+export const changeApprovals = mysqlTable(
+  "change_approvals",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    changeRequestId: int("changeRequestId").notNull().references(() => changeRequests.id),
+    organizationId: int("organizationId").notNull().references(() => organizations.id),
+    decidedBy: int("decidedBy").notNull().references(() => users.id),
+    decision: mysqlEnum("decision", ["approved", "rejected"]).notNull(),
+    comment: text("comment"),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  },
+  (table) => [index("approval_change_idx").on(table.changeRequestId)],
+);
+
+export const configurationSnapshots = mysqlTable(
+  "configuration_snapshots",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    organizationId: int("organizationId").notNull().references(() => organizations.id),
+    changeRequestId: int("changeRequestId").notNull().references(() => changeRequests.id),
+    configurationId: int("configurationId").notNull().references(() => aiConfigurations.id),
+    snapshot: json("snapshot").$type<Record<string, unknown>>().notNull(),
+    createdBy: int("createdBy").notNull().references(() => users.id),
+    restoredAt: timestamp("restoredAt"),
+    restoredBy: int("restoredBy").references(() => users.id),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  },
+  (table) => [index("snapshot_organization_change_idx").on(table.organizationId, table.changeRequestId)],
+);
+
+export const auditEvents = mysqlTable(
+  "audit_events",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    organizationId: int("organizationId").notNull().references(() => organizations.id),
+    actorId: int("actorId").notNull().references(() => users.id),
+    changeRequestId: int("changeRequestId").references(() => changeRequests.id),
+    action: varchar("action", { length: 120 }).notNull(),
+    subjectType: varchar("subjectType", { length: 120 }).notNull(),
+    subjectId: int("subjectId"),
+    outcome: mysqlEnum("outcome", ["success", "denied", "failed"]).notNull(),
+    details: json("details").$type<Record<string, unknown>>().notNull(),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  },
+  (table) => [
+    index("audit_organization_created_idx").on(table.organizationId, table.createdAt),
+    index("audit_change_idx").on(table.changeRequestId),
+  ],
+);
+
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
-
-// TODO: Add your tables here
+export type Organization = typeof organizations.$inferSelect;
+export type OrganizationMembership = typeof organizationMemberships.$inferSelect;
+export type UserOrganizationContext = typeof userOrganizationContexts.$inferSelect;
+export type AiConfiguration = typeof aiConfigurations.$inferSelect;
+export type ChangeRequest = typeof changeRequests.$inferSelect;
+export type ChangeStatus = ChangeRequest["status"];

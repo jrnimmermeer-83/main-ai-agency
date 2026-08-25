@@ -1,0 +1,28 @@
+# Project TODO
+
+- [x] Bouw een feitelijk in-app voortgangsoverzicht met actuele implementatiestatus, operationele controles en delivery roadmap.
+- [x] Modelleer organisaties, memberships, server-side rollen en tenantgebonden toegang voor elke operationele procedure.
+- [x] Voeg tenantgebonden AI-configuratie, wijzigingsverzoeken, approvals, audit-events, snapshots en providerinstellingen toe aan het datamodel.
+- [x] Implementeer server-side procedures voor actieve organisatiecontext, toegangscontrole en veilige configuratie-uitlezing.
+- [x] Sla de actieve organisatiecontext per gebruiker server-side op en dwing deze context af bij tenantgebonden interfaceacties.
+- [x] Voeg expliciete tenantveilige configuratie-uitlezing toe voor Customer AI en Platform AI, inclusief cross-tenant-weigeringstest.
+- [x] Dwing de actieve organisatiecontext server-side af in alle tenantgebonden procedures, naast de membershipcontrole.
+- [x] Bewijs met een Vitest-test dat Customer AI- en Platform AI-configuraties van een andere organisatie worden geweigerd.
+- [x] Implementeer één beperkte, tenantgebonden Safe Change voor Customer AI-configuratie met validatie en server-side uitvoering.
+- [x] Leg een persistente Safe Change-lifecycle vast met classificatie, validatie, uitvoering, verificatie en immutable auditdetails.
+- [x] Bouw Changes- en History-weergaven met status, actor, tijdstip, validatieresultaat en wijzigingsdetails.
+- [x] Implementeer Structural Change-verzoeken die wachten op expliciete goedkeuring of afwijzing door een geautoriseerde beheerder.
+- [x] Voeg tenant- en changegebonden rollback toe met pre-change snapshots, restore-resultaat en audittrail.
+- [x] Bouw een governede Platform AI Agent-chat die uitsluitend wijzigingsvoorstellen creëert en geen autorisatie of governance omzeilt.
+- [x] Voeg afzonderlijke tenantgebonden instellingen toe voor Customer AI en Platform AI met gevalideerde OpenAI-, Anthropic- en Google-keuzes zonder browsersecrets.
+- [x] Bouw een responsieve, toegankelijke beheeromgeving met navigatie voor Chat, Changes, Approvals, History, Health en Rollback.
+- [x] Schrijf en voer Vitest-tests uit voor organisatieautorisatie, Safe Changes, approvals, auditlogs, rollback en providergrenzen.
+- [ ] Controleer de kernschermen visueel op desktop en mobiel en verifieer fout-, laad- en lege staten.
+- [x] Herstel het wisselen naar elke organisatie waarvoor de gebruiker membership heeft, zonder blokkade van de vorige actieve context.
+- [x] Voeg proceduretests toe voor cross-tenant configuratie-uitlezing, approvals, audit-eventregistratie, rollback en providerwijzigingen.
+- [ ] Verifieer na echte organisatie-onboarding de tenantwerkruimte op desktop en mobiel, inclusief laad-, fout- en lege staten.
+- [x] Voeg auditregistratietests toe voor Safe Change-creatie, approval of rejection, uitvoering en rollback.
+- [x] Test de auditdetails voor actor, organizationId, action, outcome en changeRequestId op de belangrijkste governancepaden.
+- [x] Voeg flow-niveau tests toe die auditcalls bewijzen voor create, approve of reject, execute, failed en rollback.
+- [x] Voeg een directe approved Structural Change-flowtest toe met execution-start- en verification-auditdetails.
+- [x] Werk de voortgangsstatus en delivery roadmap bij, voer kwaliteitscontroles uit en maak een projectcheckpoint.
