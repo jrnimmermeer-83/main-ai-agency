@@ -48,7 +48,7 @@ Een lead krijgt minimaal deze velden:
 
 ## Shopify-plaatsing
 
-Na implementatie leveren we één klein widgetscript met een publieke widget-ID. Dit wordt via Shopify onder **Online Store → Themes → Customize → App embeds** of via een gecontroleerd theme-snippet geplaatst. De exacte plaatsing gebeurt pas na functionele acceptatietest in Main AI Agency.
+Na implementatie levert Main AI Agency een iframe-embedcode met een publieke widget-ID. Het systeem toont bewust geen organisatie-ID in de browser: de server leidt de organisatie veilig af uit de widgetregistratie na een origin-controle. De code wordt via Shopify onder **Online Store → Themes → Customize → Custom Liquid** of via een gecontroleerd theme-snippet geplaatst. De exacte plaatsing gebeurt pas na functionele acceptatietest in Main AI Agency. Zie [`WIDGET_EMBED.md`](WIDGET_EMBED.md).
 
 ## Bewuste grenzen voor versie 1
 
