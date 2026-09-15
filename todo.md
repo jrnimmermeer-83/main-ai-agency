@@ -35,16 +35,17 @@
 - [x] Verifieer mobiele laad-, fout- en leegstatussen zonder tenantdata te wijzigen.
 - [x] Analyseer easywiel.nl en leg de juiste botrol, kernvragen en leadroute voor websitebezoekers vast.
 - [x] Ontwerp een privacybewuste website-chatflow voor informatievragen, interesseherkenning en expliciete toestemming voor contactgegevens.
-- [ ] Voeg een tenantgebonden leadmodel, veilige publieke intakeprocedure en beheerscherm voor opvolging toe.
-- [ ] Koppel een server-side AI-provider aan de websitebot zonder providersecrets naar de browser te sturen.
-- [ ] Bouw een inbedbare EasyWiel-chatwidget met toegankelijke laad-, fout- en privacytoestanden.
+- [x] Voeg een tenantgebonden leadmodel, veilige publieke intakeprocedure en beheerscherm voor opvolging toe.
+- [x] Koppel een server-side AI-provider aan de websitebot zonder providersecrets naar de browser te sturen.
+- [x] Bouw een inbedbare EasyWiel-chatwidget met toegankelijke laad-, fout- en privacytoestanden.
 - [ ] Test de publieke chat-, lead- en tenantisolatiepaden voordat de widget op easywiel.nl wordt geplaatst.
-- [ ] Maak de openbare chatbotconfiguratie tenantgebonden en beperk antwoorden tot de goedgekeurde EasyWiel-kennisbasis.
-- [ ] Leg toestemming, leadbron, intentie, contactgegevens en opvolgstatus per lead vast.
-- [ ] Bouw een afgeschermde lead-inbox in Main AI Agency voor statuswijziging en opvolging.
-- [ ] Lever een inbedbare widgetloader met een organisatie- en widgetidentificatie, zonder beheerders- of providergegevens in de browser.
+- [x] Maak de openbare chatbotconfiguratie tenantgebonden en beperk antwoorden tot de goedgekeurde EasyWiel-kennisbasis.
+- [x] Leg toestemming, leadbron, intentie, contactgegevens en opvolgstatus per lead vast.
+- [x] Bouw een afgeschermde lead-inbox in Main AI Agency voor statuswijziging en opvolging.
+- [ ] Lever een echte inbedbare widgetloader of documenteer expliciet waarom uitsluitend een widget-ID veiliger is dan een browserzichtbare organisatie-ID.
+- [ ] Voer een aangemelde end-to-endtest uit: widget aanmaken, openbare chat openen, lead met toestemming indienen, lead-inbox openen en status wijzigen.
 - [x] Documenteer de exportgerichte React/TypeScript-, Node/Express- en databasearchitectuur voor GitHub en Lovable.
 - [x] Voeg een root-README, databaseschemareferentie en een secretvrije configuratietemplate toe.
 - [x] Controleer dat secrets, lokale runtimegegevens en tijdelijke bestanden niet in de export terechtkomen.
 - [x] Valideer de exportbuild en tests vóór publicatie naar GitHub.
-- [ ] Maak of actualiseer een openbare GitHub-repository en push de exportklare codebase.
+- [x] Maak of actualiseer een openbare GitHub-repository en push de exportklare codebase.
