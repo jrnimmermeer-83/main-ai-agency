@@ -7,6 +7,9 @@ import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
 import { COOKIE_NAME } from "../shared/const";
 import {
   applyApprovedChange,
+  consumeWebsiteChatQuota,
+  createWebsiteLead,
+  createWebsiteWidget,
   createGovernedChange,
   createOrganizationForUser,
   decideStructuralChange,
@@ -14,14 +17,19 @@ import {
   getConfigurationForOrganization,
   getMembershipForOrganization,
   getProviderSettingsForOrganization,
+  getPublicWebsiteWidget,
+  getWebsiteWidgetForOrganization,
   getWorkspaceOverview,
   listAuditEventsForOrganization,
   listChangesForOrganization,
   listOrganizationsForUser,
+  listWebsiteLeadsForOrganization,
   rollbackChangeForOrganization,
   setActiveOrganizationForUser,
+  updateWebsiteLeadStatus,
 } from "./db";
 import { canApproveOrRollback, canOperate, classifyProposal, hasActiveOrganizationContext, supportedProviders, validateProposal } from "./governance";
+import { easyWielAssistantPrompt, easyWielFallbackAnswer } from "./easywielBot";
 
 const organizationInput = z.object({ organizationId: z.number().int().positive() });
 const proposalSchema = z.object({
@@ -171,6 +179,52 @@ export const appRouter = router({
     models: protectedProcedure.query(async () => {
       const { data } = await listLLMModels();
       return data.map((model) => ({ id: model.id }));
+    }),
+  }),
+  website: router({
+    widget: protectedProcedure.input(organizationInput).query(async ({ ctx, input }) => {
+      await requireTenantMembership(ctx.user.id, input.organizationId);
+      return getWebsiteWidgetForOrganization(input.organizationId);
+    }),
+    createWidget: protectedProcedure.input(organizationInput.extend({ name: z.string().trim().min(3).max(120), allowedOrigins: z.array(z.string().url().max(300)).min(1).max(5) })).mutation(async ({ ctx, input }) => {
+      await requireAdministrator(ctx.user.id, input.organizationId);
+      return createWebsiteWidget({ organizationId: input.organizationId, createdBy: ctx.user.id, name: input.name, allowedOrigins: input.allowedOrigins.map((value) => new URL(value).origin) });
+    }),
+    leads: protectedProcedure.input(organizationInput).query(async ({ ctx, input }) => {
+      await requireTenantMembership(ctx.user.id, input.organizationId);
+      return listWebsiteLeadsForOrganization(input.organizationId);
+    }),
+    updateLeadStatus: protectedProcedure.input(organizationInput.extend({ leadId: z.number().int().positive(), status: z.enum(["new", "in_progress", "contacted", "closed"]) })).mutation(async ({ ctx, input }) => {
+      await requireOperator(ctx.user.id, input.organizationId);
+      await updateWebsiteLeadStatus({ organizationId: input.organizationId, leadId: input.leadId, status: input.status, actorId: ctx.user.id });
+      return { success: true };
+    }),
+  }),
+  publicWidget: router({
+    config: publicProcedure.input(z.object({ publicId: z.string().trim().min(8).max(64), sourceUrl: z.string().url().max(1000) })).query(async ({ input }) => {
+      const widget = await getPublicWebsiteWidget(input.publicId, input.sourceUrl);
+      return { name: widget.name, publicId: widget.publicId };
+    }),
+    chat: publicProcedure.input(z.object({ publicId: z.string().trim().min(8).max(64), sourceUrl: z.string().url().max(1000), sessionKey: z.string().trim().min(16).max(80), message: z.string().trim().min(1).max(1000) })).mutation(async ({ input }) => {
+      const widget = await getPublicWebsiteWidget(input.publicId, input.sourceUrl);
+      await consumeWebsiteChatQuota(widget.id, input.sessionKey);
+      try {
+        const { data: models } = await listLLMModels();
+        const model = models.find((candidate) => candidate.id === "gpt-5-mini")?.id ?? models[0]?.id;
+        if (!model) throw new Error("Geen AI-model beschikbaar.");
+        const response = await invokeLLM({ model, messages: [{ role: "system", content: easyWielAssistantPrompt }, { role: "user", content: input.message }] });
+        const reply = response.choices[0]?.message.content;
+        if (!reply || typeof reply !== "string") throw new Error("Leeg antwoord.");
+        return { reply, usedFallback: false };
+      } catch {
+        return { reply: easyWielFallbackAnswer(input.message), usedFallback: true };
+      }
+    }),
+    createLead: publicProcedure.input(z.object({ publicId: z.string().trim().min(8).max(64), sourceUrl: z.string().url().max(1000), sessionKey: z.string().trim().min(16).max(80), consent: z.literal(true), intent: z.enum(["purchase", "fleet", "service", "general"]), name: z.string().trim().min(2).max(160), email: z.string().trim().email().max(320), phone: z.string().trim().max(40).optional(), message: z.string().trim().min(4).max(3000) })).mutation(async ({ input }) => {
+      const widget = await getPublicWebsiteWidget(input.publicId, input.sourceUrl);
+      await consumeWebsiteChatQuota(widget.id, input.sessionKey);
+      const leadId = await createWebsiteLead({ widgetId: widget.id, organizationId: widget.organizationId, intent: input.intent, name: input.name, email: input.email.toLowerCase(), phone: input.phone, message: input.message, sourceUrl: input.sourceUrl });
+      return { success: true, leadId };
     }),
   }),
   agent: router({

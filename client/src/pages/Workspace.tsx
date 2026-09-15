@@ -10,7 +10,7 @@ import { AlertTriangle, ArrowRight, Bot, CheckCircle2, CircleDot, Clock3, FileCh
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
-type Section = "overview" | "chat" | "changes" | "approvals" | "history" | "health" | "rollback" | "providers";
+type Section = "overview" | "chat" | "changes" | "approvals" | "history" | "health" | "rollback" | "providers" | "websitebot" | "leads";
 
 const statusTone: Record<string, string> = {
   verified: "border-emerald-200 bg-emerald-50 text-emerald-700",
@@ -33,7 +33,9 @@ const sectionCopy: Record<Section, { eyebrow: string; title: string; description
   history: { eyebrow: "Immutable audit trail", title: "Operational history", description: "Review actors, timestamps, outcomes, and change-specific audit details." },
   health: { eyebrow: "Operational readiness", title: "Control-plane health", description: "See the status of governance safeguards and remaining operational checks." },
   rollback: { eyebrow: "Controlled recovery", title: "Tenant-bound rollback", description: "Restore the pre-change snapshot for a verified supported configuration change." },
-  providers: { eyebrow: "Provider governance", title: "Customer and platform provider settings", description: "Provider choices are tenant-scoped. Credentials stay server-side and are never rendered in this workspace." },
+  providers: { eyebrow: "Aanbiedersgovernance", title: "Instellingen voor klant- en platformaanbieders", description: "Aanbiederskeuzes zijn tenantgebonden. Toegangssleutels blijven op de server en worden nooit in deze werkruimte getoond." },
+  websitebot: { eyebrow: "EasyWiel Assistent", title: "Websitebot instellen", description: "Maak een openbare, toegankelijke assistent voor easywiel.nl. De widget gebruikt alleen goedgekeurde informatie en geeft nooit beheer- of providergegevens prijs." },
+  leads: { eyebrow: "Opvolging", title: "Websiteleads", description: "Bekijk en volg toestemming-gebaseerde aanvragen van bezoekers van EasyWiel op, uitsluitend binnen deze organisatie." },
 };
 
 function StatusBadge({ status }: { status: string }) {

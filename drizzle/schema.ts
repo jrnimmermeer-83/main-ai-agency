@@ -100,6 +100,59 @@ export const providerSettings = mysqlTable(
   (table) => [uniqueIndex("provider_setting_organization_scope_unique").on(table.organizationId, table.scope)],
 );
 
+export const websiteWidgets = mysqlTable(
+  "website_widgets",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    organizationId: int("organizationId").notNull().references(() => organizations.id),
+    publicId: varchar("publicId", { length: 64 }).notNull().unique(),
+    name: varchar("name", { length: 120 }).notNull(),
+    allowedOrigins: json("allowedOrigins").$type<string[]>().notNull(),
+    enabled: boolean("enabled").notNull().default(true),
+    createdBy: int("createdBy").notNull().references(() => users.id),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  (table) => [index("widget_organization_idx").on(table.organizationId)],
+);
+
+export const websiteChatSessions = mysqlTable(
+  "website_chat_sessions",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    widgetId: int("widgetId").notNull().references(() => websiteWidgets.id),
+    sessionKey: varchar("sessionKey", { length: 80 }).notNull(),
+    windowStartedAt: timestamp("windowStartedAt").notNull(),
+    messageCount: int("messageCount").notNull().default(0),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  (table) => [uniqueIndex("chat_session_widget_key_unique").on(table.widgetId, table.sessionKey)],
+);
+
+export const websiteLeads = mysqlTable(
+  "website_leads",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    organizationId: int("organizationId").notNull().references(() => organizations.id),
+    widgetId: int("widgetId").notNull().references(() => websiteWidgets.id),
+    intent: mysqlEnum("intent", ["purchase", "fleet", "service", "general"]).notNull(),
+    status: mysqlEnum("status", ["new", "in_progress", "contacted", "closed"]).notNull().default("new"),
+    name: varchar("name", { length: 160 }).notNull(),
+    email: varchar("email", { length: 320 }).notNull(),
+    phone: varchar("phone", { length: 40 }),
+    message: text("message").notNull(),
+    sourceUrl: varchar("sourceUrl", { length: 1000 }),
+    consentAt: timestamp("consentAt").notNull(),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  (table) => [
+    index("lead_organization_status_idx").on(table.organizationId, table.status),
+    index("lead_widget_created_idx").on(table.widgetId, table.createdAt),
+  ],
+);
+
 export const changeRequests = mysqlTable(
   "change_requests",
   {
@@ -192,5 +245,7 @@ export type Organization = typeof organizations.$inferSelect;
 export type OrganizationMembership = typeof organizationMemberships.$inferSelect;
 export type UserOrganizationContext = typeof userOrganizationContexts.$inferSelect;
 export type AiConfiguration = typeof aiConfigurations.$inferSelect;
+export type WebsiteWidget = typeof websiteWidgets.$inferSelect;
+export type WebsiteLead = typeof websiteLeads.$inferSelect;
 export type ChangeRequest = typeof changeRequests.$inferSelect;
 export type ChangeStatus = ChangeRequest["status"];

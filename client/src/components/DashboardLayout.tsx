@@ -19,9 +19,11 @@ import {
   Bot,
   CheckCircle2,
   ClipboardList,
+  ContactRound,
   History,
   LayoutDashboard,
   LogOut,
+  MessageSquareMore,
   RotateCcw,
   Settings2,
   ShieldCheck,
@@ -29,14 +31,16 @@ import {
 import { useLocation } from "wouter";
 
 const menuItems = [
-  { icon: LayoutDashboard, label: "Overview", path: "/" },
-  { icon: Bot, label: "Chat", path: "/chat" },
-  { icon: ClipboardList, label: "Changes", path: "/changes" },
-  { icon: CheckCircle2, label: "Approvals", path: "/approvals" },
-  { icon: History, label: "History", path: "/history" },
-  { icon: Activity, label: "Health", path: "/health" },
-  { icon: RotateCcw, label: "Rollback", path: "/rollback" },
-  { icon: Settings2, label: "Providers", path: "/providers" },
+  { icon: LayoutDashboard, label: "Overzicht", path: "/" },
+  { icon: Bot, label: "AI-assistent", path: "/chat" },
+  { icon: ClipboardList, label: "Wijzigingen", path: "/changes" },
+  { icon: CheckCircle2, label: "Goedkeuringen", path: "/approvals" },
+  { icon: History, label: "Historie", path: "/history" },
+  { icon: Activity, label: "Gezondheid", path: "/health" },
+  { icon: RotateCcw, label: "Herstel", path: "/rollback" },
+  { icon: Settings2, label: "Aanbieders", path: "/providers" },
+  { icon: MessageSquareMore, label: "Websitebot", path: "/websitebot" },
+  { icon: ContactRound, label: "Leads", path: "/leads" },
 ];
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -54,11 +58,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <div className="mb-8 flex size-12 items-center justify-center rounded-2xl bg-cyan-400/15 text-cyan-300">
             <ShieldCheck className="size-6" />
           </div>
-          <p className="text-sm font-medium text-cyan-300">Main AI Agent</p>
-          <h1 className="mt-2 text-3xl font-semibold tracking-tight">Governed AI administration</h1>
-          <p className="mt-3 leading-6 text-slate-400">Sign in to access your organization-specific configuration, approval, and audit workspace.</p>
+          <p className="text-sm font-medium text-cyan-300">Main AI Agency</p>
+          <h1 className="mt-2 text-3xl font-semibold tracking-tight">Veilige AI-besturing</h1>
+          <p className="mt-3 leading-6 text-slate-400">Meld je aan om de AI-instellingen, goedkeuringen, leads en historie van jouw organisatie te beheren.</p>
           <Button onClick={() => startLogin()} className="mt-8 w-full bg-cyan-300 text-slate-950 hover:bg-cyan-200">
-            Sign in securely
+            Veilig aanmelden
           </Button>
         </section>
       </main>
@@ -75,13 +79,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <ShieldCheck className="size-5" />
             </span>
             <span className="min-w-0 group-data-[collapsible=icon]:hidden">
-              <span className="block truncate text-sm font-semibold tracking-tight">Main AI Agent</span>
-              <span className="block truncate text-xs text-slate-500">Governed workspace</span>
+              <span className="block truncate text-sm font-semibold tracking-tight">Main AI Agency</span>
+              <span className="block truncate text-xs text-slate-500">Gereguleerde werkruimte</span>
             </span>
           </button>
         </SidebarHeader>
         <SidebarContent className="bg-slate-950 px-3 py-4">
-          <p className="px-2 pb-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500 group-data-[collapsible=icon]:hidden">Control plane</p>
+          <p className="px-2 pb-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500 group-data-[collapsible=icon]:hidden">Besturingslaag</p>
           <SidebarMenu>
             {menuItems.map((item) => {
               const isActive = item.path === location;
@@ -107,10 +111,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <AvatarFallback className="bg-slate-800 text-xs text-cyan-300">{user.name?.slice(0, 1).toUpperCase() ?? "U"}</AvatarFallback>
             </Avatar>
             <div className="min-w-0 flex-1 group-data-[collapsible=icon]:hidden">
-              <p className="truncate text-sm font-medium text-slate-100">{user.name ?? "Workspace user"}</p>
-              <p className="truncate text-xs text-slate-500">Authenticated session</p>
+              <p className="truncate text-sm font-medium text-slate-100">{user.name ?? "Werkruimtegebruiker"}</p>
+              <p className="truncate text-xs text-slate-500">Aangemelde sessie</p>
             </div>
-            <button onClick={logout} aria-label="Sign out" className="rounded-lg p-2 text-slate-500 transition-colors hover:bg-slate-800 hover:text-slate-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300 group-data-[collapsible=icon]:hidden">
+            <button onClick={logout} aria-label="Afmelden" className="rounded-lg p-2 text-slate-500 transition-colors hover:bg-slate-800 hover:text-slate-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300 group-data-[collapsible=icon]:hidden">
               <LogOut className="size-4" />
             </button>
           </div>
@@ -121,10 +125,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <SidebarTrigger className="text-slate-700" />
           <div>
             <p className="text-sm font-semibold text-slate-950">{activeItem.label}</p>
-            <p className="text-xs text-slate-500">Tenant-safe control plane</p>
+            <p className="text-xs text-slate-500">Tenantveilige besturingslaag</p>
           </div>
           <div className="ml-auto hidden items-center gap-2 sm:flex">
-            <span className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700">Governance online</span>
+            <span className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700">Governance actief</span>
           </div>
         </header>
         <main className="mx-auto w-full max-w-[1600px] p-4 md:p-8">{children}</main>

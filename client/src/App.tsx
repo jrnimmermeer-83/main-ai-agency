@@ -5,6 +5,9 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import NotFound from "./pages/NotFound";
 import Workspace from "./pages/Workspace";
+import EasyWielWidget from "./pages/EasyWielWidget";
+import LeadInbox from "./pages/LeadInbox";
+import WebsiteBotAdmin from "./pages/WebsiteBotAdmin";
 
 function Router() {
   return <Switch>
@@ -16,6 +19,9 @@ function Router() {
     <Route path="/health" component={() => <Workspace section="health" />} />
     <Route path="/rollback" component={() => <Workspace section="rollback" />} />
     <Route path="/providers" component={() => <Workspace section="providers" />} />
+    <Route path="/websitebot" component={WebsiteBotAdmin} />
+    <Route path="/leads" component={LeadInbox} />
+    <Route path="/widget/:publicId" component={EasyWielWidget} />
     <Route component={NotFound} />
   </Switch>;
 }

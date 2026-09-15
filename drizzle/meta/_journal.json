@@ -22,6 +22,13 @@
       "when": 1787689769411,
       "tag": "0002_unknown_wallop",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "5",
+      "when": 1789312445286,
+      "tag": "0003_slim_krista_starr",
+      "breakpoints": true
     }
   ]
 }

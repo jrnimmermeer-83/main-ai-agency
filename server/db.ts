@@ -1,4 +1,5 @@
 import { and, desc, eq } from "drizzle-orm";
+import { randomBytes } from "node:crypto";
 import { drizzle } from "drizzle-orm/mysql2";
 import {
   aiConfigurations,
@@ -10,6 +11,9 @@ import {
   organizations,
   providerSettings,
   userOrganizationContexts,
+  websiteChatSessions,
+  websiteLeads,
+  websiteWidgets,
   type InsertUser,
   users,
 } from "../drizzle/schema";
@@ -181,6 +185,77 @@ export async function getConfigurationForOrganization(organizationId: number, sc
 export async function getProviderSettingsForOrganization(organizationId: number) {
   const db = await requireDb();
   return db.select().from(providerSettings).where(eq(providerSettings.organizationId, organizationId));
+}
+
+export async function getWebsiteWidgetForOrganization(organizationId: number) {
+  const db = await requireDb();
+  const result = await db.select().from(websiteWidgets).where(eq(websiteWidgets.organizationId, organizationId)).limit(1);
+  return result[0];
+}
+
+export async function getPublicWebsiteWidget(publicId: string, sourceUrl: string) {
+  const db = await requireDb();
+  const result = await db.select().from(websiteWidgets).where(eq(websiteWidgets.publicId, publicId)).limit(1);
+  const widget = result[0];
+  if (!widget || !widget.enabled) throw new Error("Deze website-assistent is niet beschikbaar.");
+  const allowedOrigins = widget.allowedOrigins as string[];
+  let origin: string;
+  try {
+    origin = new URL(sourceUrl).origin;
+  } catch {
+    throw new Error("De herkomst van dit chatverzoek is ongeldig.");
+  }
+  if (!allowedOrigins.includes(origin)) throw new Error("Deze website mag de EasyWiel Assistent niet gebruiken.");
+  return widget;
+}
+
+export async function createWebsiteWidget(input: { organizationId: number; createdBy: number; name: string; allowedOrigins: string[] }) {
+  const db = await requireDb();
+  const publicId = `ew_${randomBytes(18).toString("base64url")}`;
+  const inserted = await db.insert(websiteWidgets).values({
+    organizationId: input.organizationId,
+    publicId,
+    name: input.name,
+    allowedOrigins: input.allowedOrigins,
+    createdBy: input.createdBy,
+  });
+  const id = Number(inserted[0].insertId);
+  await governanceAuditWriter({ organizationId: input.organizationId, actorId: input.createdBy, action: "website_widget.created", subjectType: "website_widget", subjectId: id, outcome: "success", details: { name: input.name, allowedOrigins: input.allowedOrigins } });
+  return getWebsiteWidgetForOrganization(input.organizationId);
+}
+
+export async function consumeWebsiteChatQuota(widgetId: number, sessionKey: string) {
+  const db = await requireDb();
+  const now = new Date();
+  const result = await db.select().from(websiteChatSessions).where(and(eq(websiteChatSessions.widgetId, widgetId), eq(websiteChatSessions.sessionKey, sessionKey))).limit(1);
+  const current = result[0];
+  if (!current) {
+    await db.insert(websiteChatSessions).values({ widgetId, sessionKey, windowStartedAt: now, messageCount: 1 });
+    return;
+  }
+  const windowExpired = now.getTime() - current.windowStartedAt.getTime() >= 60 * 60 * 1000;
+  if (!windowExpired && current.messageCount >= 20) throw new Error("Je hebt het maximale aantal chatberichten voor dit uur bereikt. Probeer het later opnieuw of neem contact op met EasyWiel.");
+  await db.update(websiteChatSessions).set(windowExpired ? { windowStartedAt: now, messageCount: 1, updatedAt: now } : { messageCount: current.messageCount + 1, updatedAt: now }).where(eq(websiteChatSessions.id, current.id));
+}
+
+export async function createWebsiteLead(input: { widgetId: number; organizationId: number; intent: "purchase" | "fleet" | "service" | "general"; name: string; email: string; phone?: string; message: string; sourceUrl?: string }) {
+  const db = await requireDb();
+  const inserted = await db.insert(websiteLeads).values({ ...input, consentAt: new Date(), phone: input.phone || null, sourceUrl: input.sourceUrl || null });
+  return Number(inserted[0].insertId);
+}
+
+export async function listWebsiteLeadsForOrganization(organizationId: number) {
+  const db = await requireDb();
+  return db.select().from(websiteLeads).where(eq(websiteLeads.organizationId, organizationId)).orderBy(desc(websiteLeads.createdAt));
+}
+
+export async function updateWebsiteLeadStatus(input: { organizationId: number; leadId: number; status: "new" | "in_progress" | "contacted" | "closed"; actorId: number }) {
+  const db = await requireDb();
+  const result = await db.select().from(websiteLeads).where(and(eq(websiteLeads.organizationId, input.organizationId), eq(websiteLeads.id, input.leadId))).limit(1);
+  const lead = result[0];
+  if (!lead) throw new Error("Deze lead bestaat niet binnen de actieve organisatie.");
+  await db.update(websiteLeads).set({ status: input.status, updatedAt: new Date() }).where(and(eq(websiteLeads.id, input.leadId), eq(websiteLeads.organizationId, input.organizationId)));
+  await governanceAuditWriter({ organizationId: input.organizationId, actorId: input.actorId, action: "website_lead.status_changed", subjectType: "website_lead", subjectId: lead.id, outcome: "success", details: { previousStatus: lead.status, status: input.status, intent: lead.intent } });
 }
 
 export async function recordAuditEvent(input: {
